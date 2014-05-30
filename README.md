@@ -17,3 +17,8 @@ Other features to be added:
 - GPs for classification
 - Mex compilation scripts (for Matlab)
 - Python module
+
+Library dependencies:
+- BLAS
+- LAPACK
+- libLBFGS (this is optional, required for the training function. Can be found at http://www.chokkan.org/software/liblbfgs/)
