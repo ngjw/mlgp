@@ -12,3 +12,7 @@ and two covariance functions, but more will be added (work is ongoing).
 This library will also include a GPU (CUDA) implementation of GPs based on a
 prototype developed as part of a MSc project at the Department of Computing,
 Imperial College London.
+
+Features to be added:
+- Mex compilation scripts (for Matlab)
+- Python module
