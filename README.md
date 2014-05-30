@@ -14,5 +14,6 @@ prototype developed as part of a MSc project at the Department of Computing,
 Imperial College London.
 
 Other features to be added:
+- GPs for classification
 - Mex compilation scripts (for Matlab)
 - Python module
