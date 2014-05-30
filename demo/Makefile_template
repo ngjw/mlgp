@@ -1,0 +1,12 @@
+include ../make.inc
+
+INCLUDE = -I../include
+
+demo: demo.c aux.o
+	__MAKEDEMO
+
+aux.o: aux.c
+	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -c aux.c
+
+clean:
+	rm *.o
