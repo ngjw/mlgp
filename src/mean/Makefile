@@ -1,30 +1,38 @@
 include ../../make.inc
 
-MEANS = \
-mean.o \
-mean_aux.o \
-meanOne.o \
-meanConst.o \
-meanLinear.o \
-
 INCLUDE += -I../../include
+
+SINGLEOBJS = \
+mean_sp.o \
+mean_aux_sp.o \
+meanOne_sp.o \
+meanConst_sp.o \
+meanLinear_sp.o \
+
+DOUBLEOBJS = \
+mean_dp.o \
+mean_aux_dp.o \
+meanOne_dp.o \
+meanConst_dp.o \
+meanLinear_dp.o \
+
+MEANS =
+
+ifeq ($(SINGLE),1)
+MEANS+=$(SINGLEOBJS)
+endif
+
+ifeq ($(DOUBLE),1)
+MEANS+=$(DOUBLEOBJS)
+endif
 
 all: $(MEANS)
 
-mean.o: mean.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c mean.c
+%_sp.o: %.c
+	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c $< -o $@
 
-mean_aux.o: mean_aux.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c mean_aux.c
-
-meanOne.o: meanOne.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c meanOne.c
-
-meanConst.o: meanConst.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c meanConst.c
-
-meanLinear.o: meanLinear.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c meanLinear.c
+%_dp.o: %.c
+	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -DDOUBLE -fPIC -c $< -o $@
 
 clean:
-	rm *.o;
+	rm -f *.o *.gcno;

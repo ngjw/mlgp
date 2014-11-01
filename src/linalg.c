@@ -5,9 +5,7 @@
 
 /* This file contains all the auxiliary functions required in the MLGP library */
 
-// TODO: error handling
-
-void chol(mlgpMatrix_t A)
+int CHOL(MATRIX_T A)
 {
 
   /* computes the Cholesky factorization of A */
@@ -24,9 +22,11 @@ void chol(mlgpMatrix_t A)
     A.m[i+j*N] = 0.0;
   }}
 
+  return info;
+
 }
 
-void chol_packed(mlgpMatrix_t A)
+int CHOL_PACKED(MATRIX_T A)
 {
 
   /* computes the Cholesky factorization of A */
@@ -37,9 +37,11 @@ void chol_packed(mlgpMatrix_t A)
 
   PPTRF(&uplo,&N,A.m,&info);
 
+  return info;
+
 }
 
-void inv_chol(mlgpMatrix_t L)
+int INV_CHOL(MATRIX_T L)
 {
   
   /* computes the inverse of a symmetric square NxN 
@@ -56,9 +58,11 @@ void inv_chol(mlgpMatrix_t L)
     L.m[i+N*j] = L.m[j+N*i];
   }}
 
+  return info;
+
 }
 
-void inv_chol_packed(mlgpMatrix_t L)
+int INV_CHOL_PACKED(MATRIX_T L)
 {
   
   /* computes the inverse of a symmetric square NxN 
@@ -70,9 +74,11 @@ void inv_chol_packed(mlgpMatrix_t L)
 
   PPTRI(&uplo,&N,L.m,&info);
 
+  return info;
+
 }
 
-void solve_chol_multiple(mlgpMatrix_t L, mlgpMatrix_t B)
+int SOLVE_CHOL_MULTIPLE(MATRIX_T L, MATRIX_T B)
 {
 
   /* solves Ax = B where A = LL^T */
@@ -84,9 +90,11 @@ void solve_chol_multiple(mlgpMatrix_t L, mlgpMatrix_t B)
 
   POTRS(&uplo,&N,&Nrhs,L.m,&N,B.m,&N,&info);
 
+  return info;
+
 }
 
-void solve_chol_one(mlgpMatrix_t L, mlgpVector_t B)
+int SOLVE_CHOL_ONE(MATRIX_T L, VECTOR_T B)
 {
 
   /* solves Ax = B where A = LL^T */
@@ -98,9 +106,11 @@ void solve_chol_one(mlgpMatrix_t L, mlgpVector_t B)
 
   POTRS(&uplo,&N,&Nrhs,L.m,&N,B.v,&N,&info);
 
+  return info;
+
 }
 
-void solve_chol_packed_multiple(mlgpMatrix_t L, mlgpMatrix_t B)
+int SOLVE_CHOL_PACKED_MULTIPLE(MATRIX_T L, MATRIX_T B)
 {
 
   /* solves Ax = B where A = LL^T */
@@ -108,13 +118,15 @@ void solve_chol_packed_multiple(mlgpMatrix_t L, mlgpMatrix_t B)
   int info;
   int N = (int)L.nrows;
   int Nrhs = (int)B.ncols;
-  char uplo = 'U';
+  char uplo = 'L';
 
   PPTRS(&uplo,&N,&Nrhs,L.m,B.m,&N,&info);
 
+  return info;
+
 }
 
-void solve_chol_packed_one(mlgpMatrix_t L, mlgpVector_t B)
+int SOLVE_CHOL_PACKED_ONE(MATRIX_T L, VECTOR_T B)
 {
 
   /* solves Ax = B where A = LL^T */
@@ -126,26 +138,28 @@ void solve_chol_packed_one(mlgpMatrix_t L, mlgpVector_t B)
 
   PPTRS(&uplo,&N,&Nrhs,L.m,B.v,&N,&info);
 
+  return info;
+
 }
 
-mlgpFloat_t log_det_tr(mlgpMatrix_t A)
+FLOAT LOG_DET_TR(MATRIX_T A)
 {
 
   /* computes the log determinant of a triangular matrix */
 
   int N = A.nrows;
-  mlgpFloat_t logdet = 0;
+  FLOAT logdet = 0;
   for(int i=0;i<N;i++){ logdet+=log(A.m[i*(N+1)]); }
   return logdet;
 }
 
-mlgpFloat_t log_det_tr_packed(mlgpMatrix_t A)
+FLOAT LOG_DET_TR_PACKED(MATRIX_T A)
 {
 
   /* computes the log determinant of a packed upper triangular matrix */
 
   int N = A.nrows;
-  mlgpFloat_t logdet = 0;
+  FLOAT logdet = 0;
   int skip = 1;
   int count = 0;
   for(int i=0;i<N;i++){

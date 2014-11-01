@@ -5,156 +5,143 @@
  *
  * unsigned countBits(unsigned b);
  *
- * mlgpMean_t mlgp_createMean(unsigned mean_funcs, unsigned dim);
- * mlgpCov_t  mlgp_createCov (unsigned cov_funcs,  unsigned dim);
- * mlgpInf_t  mlgp_createInf (unsigned inf_func);
- * mlgpLik_t  mlgp_createLik (unsigned lik_func);
+ * MEAN_T mlgp_createMean(unsigned mean_funcs, unsigned dim);
+ * COV_T  mlgp_createCov (unsigned cov_funcs,  unsigned dim);
+ * INF_T  mlgp_createInf (unsigned inf_func);
+ * LIK_T  mlgp_createLik (unsigned lik_func);
  * 
- * mlgpMatrix_t mlgp_createMatrix(unsigned nrows, unsigned ncols);
- * mlgpVector_t mlgp_createVector(unsigned length);
+ * MATRIX_T mlgp_createMatrix(unsigned nrows, unsigned ncols);
+ * VECTOR_T mlgp_createVector(unsigned length);
  * 
- * mlgpMatrix_t mlgp_createMatrixNoMalloc(unsigned nrows, unsigned ncols);
- * mlgpVector_t mlgp_createVectorNoMalloc(unsigned length);
+ * MATRIX_T mlgp_createMatrixNoMalloc(unsigned nrows, unsigned ncols);
+ * VECTOR_T mlgp_createVectorNoMalloc(unsigned length);
  * 
- * mlgpMatrix_t mlgp_readMatrix(unsigned nrows, unsigned ncols, const char *filename);
- * mlgpVector_t mlgp_readVector(unsigned length, const char *filename);
+ * MATRIX_T mlgp_readMatrix(unsigned nrows, unsigned ncols, const char *filename);
+ * VECTOR_T mlgp_readVector(unsigned length, const char *filename);
  * 
- * mlgpStatus_t mlgp_freeMean(mlgpMean_t mean);
- * mlgpStatus_t mlgp_freeCov (mlgpCov_t  cov );
- * mlgpStatus_t mlgp_freeInf (mlgpInf_t  inf );
- * mlgpStatus_t mlgp_freeLik (mlgpLik_t  lik );
+ * mlgpStatus_t mlgp_freeMean(MEAN_T mean);
+ * mlgpStatus_t mlgp_freeCov (COV_T  cov );
+ * mlgpStatus_t mlgp_freeInf (INF_T  inf );
+ * mlgpStatus_t mlgp_freeLik (LIK_T  lik );
  *
- * mlgpStatus_t mlgp_freeMatrix(mlgpMatrix_t m);
- * mlgpStatus_t mlgp_freeVector(mlgpVector_t v);
+ * mlgpStatus_t mlgp_freeMatrix(MATRIX_T m);
+ * mlgpStatus_t mlgp_freeVector(VECTOR_T v);
  * mlgpStatus_t mlgp_freeWorkspace(mlgpWorkspace_t ws);
  * 
  */
 
-unsigned countBits (
-  unsigned b
-)
-{
-  // counts the number of 1 bits in an unsigned integer
-  unsigned count = 0;
-  while(b){
-    count++;
-    b&=(b-1);
-  }
-  return count;
-}
-
-mlgpMean_t mlgp_createMean (
+MEAN_T MLGP_CREATEMEAN (
   unsigned mean_funcs,
   unsigned dim
 )
 {
-  /* creates a mlgpMean_t struct and allocates the required memory for it */
-  mlgpMean_t mean = {.mean_funcs=mean_funcs, .nfuncs=1, .params=NULL, .dparams=NULL  };
-  unsigned nparams = mlgp_nparams_mean(mean,dim);
-  mean.params = (mlgpFloat_t*)malloc(nparams*sizeof(mlgpFloat_t));
-  mean.dparams = (mlgpFloat_t*)malloc(nparams*sizeof(mlgpFloat_t));
+  /* creates a MEAN_T struct and allocates the required memory for it */
+  MEAN_T mean = {.mean_funcs=mean_funcs, .nfuncs=1, .params=NULL, .dparams=NULL  };
+  unsigned nparams = MLGP_NPARAMS_MEAN(mean,dim);
+  mean.params = (FLOAT*)malloc(nparams*sizeof(FLOAT));
+  mean.dparams = (FLOAT*)malloc(nparams*sizeof(FLOAT));
   return mean;
 }
 
-mlgpCov_t  mlgp_createCov (
+COV_T  MLGP_CREATECOV (
 unsigned cov_funcs,  unsigned dim
 )
 {
-  /* creates a mlgpCov_t struct and allocates the required memory for it */
-  mlgpCov_t cov = {.cov_funcs=cov_funcs, .nfuncs=1, .params=NULL, .dparams=NULL  };
-  unsigned nparams = mlgp_nparams_cov(cov,dim);
-  cov.params = (mlgpFloat_t*)malloc(nparams*sizeof(mlgpFloat_t));
-  cov.dparams = (mlgpFloat_t*)malloc(nparams*sizeof(mlgpFloat_t));
+  /* creates a COV_T struct and allocates the required memory for it */
+  COV_T cov = {.cov_funcs=cov_funcs, .nfuncs=1, .params=NULL, .dparams=NULL  };
+  unsigned nparams = MLGP_NPARAMS_COV(cov,dim);
+  cov.params = (FLOAT*)malloc(nparams*sizeof(FLOAT));
+  cov.dparams = (FLOAT*)malloc(nparams*sizeof(FLOAT));
   cov.nfuncs = countBits(cov_funcs&(~covSum)&(~covProd));
   return cov;
 }
 
-mlgpInf_t  mlgp_createInf (
+INF_T  MLGP_CREATEINF (
   unsigned inf_func
 )
 {
-  /* creates a mlgpInf_t struct */
-  mlgpInf_t inf = {.inf_func = inf_func };
+  /* creates a INF_T struct */
+  INF_T inf = {.inf_func = inf_func };
   return inf;
 }
 
-mlgpLik_t  mlgp_createLik (
+LIK_T  MLGP_CREATELIK (
   unsigned lik_func
 )
 {
-  /* creates a mlgpLik_t struct and allocates the required memory for it */
-  mlgpLik_t lik = {.lik_func = lik_func };
-  lik.params = (mlgpFloat_t*)malloc(sizeof(mlgpFloat_t));
-  lik.dparams = (mlgpFloat_t*)malloc(sizeof(mlgpFloat_t));
+  /* creates a LIK_T struct and allocates the required memory for it */
+  LIK_T lik = {.lik_func = lik_func };
+  lik.params = (FLOAT*)malloc(sizeof(FLOAT));
+  lik.dparams = (FLOAT*)malloc(sizeof(FLOAT));
   return lik;
 }
 
-mlgpMatrix_t mlgp_createMatrix (
+MATRIX_T MLGP_CREATEMATRIX (
   unsigned nrows, 
   unsigned ncols
 )
 {
 
-  /* creates a mlgpMatrix_t struct and allocates required memory */
+  /* creates a MATRIX_T struct and allocates required memory */
 
-  mlgpMatrix_t matrix;
+  MATRIX_T matrix;
   matrix.nrows = nrows;
   matrix.ncols = ncols;
-  matrix.m = (mlgpFloat_t*)malloc(nrows*ncols*sizeof(mlgpFloat_t));
+  matrix.m = (FLOAT*)malloc(nrows*ncols*sizeof(FLOAT));
   return matrix;
 }
 
-mlgpMatrix_t mlgp_createMatrixNoMalloc (
+MATRIX_T MLGP_CREATEMATRIXNOMALLOC (
   unsigned nrows, 
   unsigned ncols
 )
 {
 
-  /* creates a mlgpMatrix_t struct without allocating memory */
+  /* creates a MATRIX_T struct without allocating memory */
 
-  mlgpMatrix_t matrix;
+  MATRIX_T matrix;
   matrix.nrows = nrows;
   matrix.ncols = ncols;
   matrix.m = NULL;
   return matrix;
 }
 
-mlgpVector_t mlgp_createVector (
+VECTOR_T MLGP_CREATEVECTOR (
   unsigned length
 )
 {
 
-  /* creates a mlgpVector_t struct and allocates required memory */
+  /* creates a VECTOR_T struct and allocates required memory */
 
-  mlgpVector_t vector;
+  VECTOR_T vector;
   vector.length = length;
-  vector.v = (mlgpFloat_t*)malloc(length*sizeof(mlgpFloat_t));
+  vector.v = (FLOAT*)malloc(length*sizeof(FLOAT));
   return vector;
 }
 
-mlgpVector_t mlgp_createVectorNoMalloc (
+VECTOR_T MLGP_CREATEVECTORNOMALLOC (
   unsigned length
 )
 {
 
-  /* creates a mlgpVector_t struct without allocating memory */
+  /* creates a VECTOR_T struct without allocating memory */
 
-  mlgpVector_t vector;
+  VECTOR_T vector;
   vector.length = length;
   vector.v = NULL;
   return vector;
 }
 
-mlgpMatrix_t mlgp_readMatrix (
+MATRIX_T MLGP_READMATRIX (
   unsigned nrows, 
   unsigned ncols,
   const char *filename
 )
 {
 
-  /* creates a mlgpMatrix_t struct and reads the data in a given file into it */
+  /* creates a MATRIX_T struct and reads the data in a given file into it */
 
-  mlgpMatrix_t matrix = mlgp_createMatrix(nrows,ncols);
+  MATRIX_T matrix = MLGP_CREATEMATRIX(nrows,ncols);
   FILE *fp;
   unsigned row = 0, col = 0;
   unsigned i = 0;
@@ -185,15 +172,15 @@ mlgpMatrix_t mlgp_readMatrix (
   return matrix;
 }
 
-mlgpVector_t mlgp_readVector (
+VECTOR_T MLGP_READVECTOR (
   unsigned length,
   const char *filename
 )
 {
 
-  /* creates a mlgpVector_t struct and reads the data in a given file into it */
+  /* creates a VECTOR_T struct and reads the data in a given file into it */
 
-  mlgpVector_t vector = mlgp_createVector(length);
+  VECTOR_T vector = MLGP_CREATEVECTOR(length);
 
   FILE *fp;
 	unsigned i=0;
@@ -210,60 +197,65 @@ mlgpVector_t mlgp_readVector (
   return vector;
 }
 
-mlgpStatus_t mlgp_freeMean (
-  mlgpMean_t mean
+mlgpStatus_t MLGP_FREEMEAN (
+  MEAN_T mean
 )
 {
-  /* frees the memory in a mlgpMean_t */
+  /* frees the memory in a MEAN_T */
   free(mean.params);
   free(mean.dparams);
   return mlgpSuccess;
 }
 
-mlgpStatus_t mlgp_freeCov (
-  mlgpCov_t cov
+mlgpStatus_t MLGP_FREECOV (
+  COV_T cov
 )
 {
-  /* frees the memory in a mlgpCov_t */
+  /* frees the memory in a COV_T */
   free(cov.params);
   free(cov.dparams);
   return mlgpSuccess;
 }
 
-mlgpStatus_t mlgp_freeLik (
-  mlgpLik_t lik
+mlgpStatus_t MLGP_FREELIK (
+  LIK_T lik
 )
 {
-  /* frees the memory in a mlgpLik_t */
+  /* frees the memory in a LIK_T */
   free(lik.params);
   free(lik.dparams);
   return mlgpSuccess;
 }
 
-mlgpStatus_t mlgp_freeInf (
-  mlgpInf_t inf
+mlgpStatus_t MLGP_FREEINF (
+  INF_T inf
 )
 {
   return mlgpSuccess;
 }
 
-mlgpStatus_t mlgp_freeMatrix (
-  mlgpMatrix_t m
+mlgpStatus_t MLGP_FREEMATRIX (
+  MATRIX_T m
 )
 {
-  /* frees the memory in a mlgpMatrix_t */
+  /* frees the memory in a MATRIX_T */
   free(m.m);
   return mlgpSuccess;
 }
 
-mlgpStatus_t mlgp_freeVector (
-  mlgpVector_t v
+mlgpStatus_t MLGP_FREEVECTOR (
+  VECTOR_T v
 )
 {
-  /* frees the memory in a mlgpVector_t */
+  /* frees the memory in a VECTOR_T */
   free(v.v);
   return mlgpSuccess;
 }
+
+#ifdef COMPILEONCE
+
+/* these functions are only compiled once (in the case where both
+ * single precision and double precision code is to be compiled */
 
 mlgpStatus_t mlgp_freeWorkspace (
   mlgpWorkspace_t workspace
@@ -281,3 +273,17 @@ mlgpStatus_t mlgp_freeWorkspace (
   free(workspace.ws);
   return mlgpSuccess;
 }
+
+unsigned countBits (
+  unsigned b
+)
+{
+  // counts the number of 1 bits in an unsigned integer
+  unsigned count = 0;
+  while(b){
+    count++;
+    b&=(b-1);
+  }
+  return count;
+}
+#endif /* COMPILEONCE */

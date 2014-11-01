@@ -16,4 +16,4 @@ demo: demo.c
 	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) demo.c -o demo.out -L$(MLGPLIBDIR) -lmlgp $(LIBS) $(RPATHSNS)
 
 clean:
-	rm *.o
+	rm -f *.o

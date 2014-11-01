@@ -2,15 +2,25 @@
 #include "../include/mlgp.h"
 #include <lbfgs.h>
 
+#ifdef DOUBLE
+#define PROGRESS progress_dp
+#define EVALUATE evaluate_dp
+#define MLGP_TRAIN mlgp_train_dp
+#else
+#define PROGRESS progress_sp
+#define EVALUATE evaluate_sp
+#define MLGP_TRAIN mlgp_train_sp
+#endif
+
 typedef struct
 {
-  mlgpFloat_t* nll;
-  mlgpMatrix_t X;
-  mlgpVector_t y;
-  mlgpInf_t inf;
-  mlgpMean_t mean;
-  mlgpCov_t cov;
-  mlgpLik_t lik;
+  FLOAT* nll;
+  MATRIX_T X;
+  VECTOR_T y;
+  INF_T inf;
+  MEAN_T mean;
+  COV_T cov;
+  LIK_T lik;
   mlgpWorkspace_t* workspace;
   mlgpOptions_t options;
   unsigned np_cov;
@@ -18,9 +28,9 @@ typedef struct
   unsigned np_lik;
   int verbose;
 }
-mlgp_likParams_t;
+LIKPARAMS_T;
 
-static int progress (
+static int PROGRESS (
     void *instance,
     const lbfgsfloatval_t *x,
     const lbfgsfloatval_t *g,
@@ -34,7 +44,7 @@ static int progress (
 )
 {
 
-  mlgp_likParams_t* ep = (mlgp_likParams_t*)instance;
+  LIKPARAMS_T* ep = (LIKPARAMS_T*)instance;
 
   if(ep->verbose){
     printf("Iteration %d:\n", k);
@@ -44,7 +54,7 @@ static int progress (
   return 0;
 }
 
-lbfgsfloatval_t evaluate (
+lbfgsfloatval_t EVALUATE (
   void* instance,
   const lbfgsfloatval_t *x,
   lbfgsfloatval_t *g,
@@ -53,17 +63,17 @@ lbfgsfloatval_t evaluate (
 )
 {
   
-  mlgp_likParams_t* ep = (mlgp_likParams_t*)instance;
+  LIKPARAMS_T* ep = (LIKPARAMS_T*)instance;
 
-  ep->mean.params = (mlgpFloat_t*)x;
-  ep->cov.params  = (mlgpFloat_t*)x+ep->np_mean;
-  ep->lik.params  = (mlgpFloat_t*)x+ep->np_mean+ep->np_cov;
+  ep->mean.params = (FLOAT*)x;
+  ep->cov.params  = (FLOAT*)x+ep->np_mean;
+  ep->lik.params  = (FLOAT*)x+ep->np_mean+ep->np_cov;
 
-  ep->mean.dparams = (mlgpFloat_t*)g;
-  ep->cov.dparams  = (mlgpFloat_t*)g+ep->np_mean;
-  ep->lik.dparams  = (mlgpFloat_t*)g+ep->np_mean+ep->np_cov;
+  ep->mean.dparams = (FLOAT*)g;
+  ep->cov.dparams  = (FLOAT*)g+ep->np_mean;
+  ep->lik.dparams  = (FLOAT*)g+ep->np_mean+ep->np_cov;
 
-  mlgp_likelihood(
+  MLGP_LIKELIHOOD(
    ep->nll,
    ep->X,
    ep->y,
@@ -78,14 +88,14 @@ lbfgsfloatval_t evaluate (
   return (lbfgsfloatval_t)(*(ep->nll));
 }
 
-mlgpStatus_t mlgp_train (
-  mlgpFloat_t* final_nll,
-  mlgpMatrix_t X,
-  mlgpVector_t y,
-  mlgpInf_t inf,
-  mlgpMean_t mean,
-  mlgpCov_t cov,
-  mlgpLik_t lik,
+mlgpStatus_t MLGP_TRAIN (
+  FLOAT* final_nll,
+  MATRIX_T X,
+  VECTOR_T y,
+  INF_T inf,
+  MEAN_T mean,
+  COV_T cov,
+  LIK_T lik,
   mlgpWorkspace_t* workspace,
   mlgpTrainOpts_t trainopts,
   mlgpOptions_t options
@@ -96,7 +106,7 @@ mlgpStatus_t mlgp_train (
   unsigned nparams; 
   unsigned N, dim;
   unsigned sizeK, memoryNeeded;
-  mlgp_likParams_t ep;
+  LIKPARAMS_T ep;
 
   N = X.nrows;
   dim = X.ncols;
@@ -108,19 +118,19 @@ mlgpStatus_t mlgp_train (
   if(options.opts&CREATEWORKSPACE || options.opts&NOWORKSPACE){
     
     if(options.opts&SAVE){
-      workspace->ws = (mlgpFloat_t**)malloc(2*sizeof(mlgpFloat_t*));
+      workspace->ws = malloc(2*sizeof(FLOAT*));
       workspace->size = 2;
       workspace->allocated = 0x3u;
     }else{
-      workspace->ws = (mlgpFloat_t**)malloc(sizeof(mlgpFloat_t*));
+      workspace->ws = malloc(sizeof(FLOAT*));
       workspace->size = 1;
       workspace->allocated = 0x1u;
     }
   
-    workspace->ws[0] = (mlgpFloat_t*)malloc(memoryNeeded*sizeof(mlgpFloat_t));
+    workspace->ws[0] = malloc(memoryNeeded*sizeof(FLOAT));
 
     if(options.opts&SAVE){
-      workspace->ws[1] = (mlgpFloat_t*)malloc((N*N+N)*sizeof(mlgpFloat_t));
+      workspace->ws[1] = malloc((N*N+N)*sizeof(FLOAT));
     }
 
     if(options.opts&CREATEWORKSPACE){
@@ -138,8 +148,8 @@ mlgpStatus_t mlgp_train (
   ep.lik = lik;
   ep.workspace = workspace;
   ep.options = options;
-  ep.np_cov = mlgp_nparams_cov(cov,dim);
-  ep.np_mean = mlgp_nparams_mean(mean,dim);
+  ep.np_cov = MLGP_NPARAMS_COV(cov,dim);
+  ep.np_mean = MLGP_NPARAMS_MEAN(mean,dim);
   ep.np_lik = 1;
 
   nparams = ep.np_cov + ep.np_mean + ep.np_lik;
@@ -152,24 +162,24 @@ mlgpStatus_t mlgp_train (
     lbfgs_parameter_init(&(trainopts.lbfgsparams));
   }
 
-  ep.mean.params = x;
-  ep.cov.params =  x+ep.np_mean;
-  ep.lik.params =  x+ep.np_mean+ep.np_cov;
+  ep.mean.params = (FLOAT*)x;
+  ep.cov.params =  (FLOAT*)x+ep.np_mean;
+  ep.lik.params =  (FLOAT*)x+ep.np_mean+ep.np_cov;
 
   ep.options.opts&=(~SAVE);
   ep.options.opts&=(~NOWORKSPACE|CREATEWORKSPACE);
 
-  status = lbfgs(nparams, x, &fx, evaluate, progress, &ep, &(trainopts.lbfgsparams));
+  status = lbfgs(nparams, x, &fx, EVALUATE, PROGRESS, &ep, &(trainopts.lbfgsparams));
 
-  CBLAS_COPY(ep.np_mean,x,1,mean.params,1);
-  CBLAS_COPY(ep.np_cov,x+ep.np_mean,1,cov.params,1);
-  CBLAS_COPY(ep.np_lik,x+ep.np_mean+ep.np_cov,1,lik.params,1);
+  MLGP_COPY(ep.np_mean,(FLOAT*)x,1,mean.params,1);
+  MLGP_COPY(ep.np_cov,(FLOAT*)x+ep.np_mean,1,cov.params,1);
+  MLGP_COPY(ep.np_lik,(FLOAT*)x+ep.np_mean+ep.np_cov,1,lik.params,1);
 
   *final_nll = fx;
 
   if(options.opts&SAVE){
     options.opts|=(NODERIVATIVES|SAVE);
-    mlgp_likelihood(final_nll,X,y,inf,mean,cov,lik,workspace,options);
+    MLGP_LIKELIHOOD(final_nll,X,y,inf,mean,cov,lik,workspace,options);
   }
 
 

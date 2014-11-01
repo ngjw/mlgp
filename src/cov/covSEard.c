@@ -4,41 +4,41 @@
 /* covariance function: squared exponential with 
  * automatic relevance determination distance measure */
 
-mlgpFloat_t mlgp_covSEard (
-  mlgpFloat_t *x,
+FLOAT MLGP_COVSEARD (
+  FLOAT *x,
   unsigned incx,
-  mlgpFloat_t *y,
+  FLOAT *y,
   unsigned incy,
   unsigned dim,
-  mlgpFloat_t *params,
-  mlgpFloat_t *diff
+  FLOAT *params,
+  FLOAT *diff
 )
 {
 
-  CBLAS_COPY(dim,y,incy,diff,1);
-  CBLAS_AXPY(dim,-1.0,x,incx,diff,1);
+  MLGP_COPY(dim,y,incy,diff,1);
+  MLGP_AXPY(dim,-1.0,x,incx,diff,1);
   for(int i=0;i<dim;i++){ diff[i]*=params[i]; }
-  return params[dim]*exp(-CBLAS_DOT(dim,diff,1,diff,1));
+  return params[dim]*exp(-MLGP_DOT(dim,diff,1,diff,1));
 
 }
 
-mlgpFloat_t mlgp_covSEard_derivatives (
-  mlgpFloat_t *x,
+FLOAT MLGP_COVSEARD_DERIVATIVES (
+  FLOAT *x,
   unsigned incx,
-  mlgpFloat_t *y,
+  FLOAT *y,
   unsigned incy,
   unsigned dim,
-  mlgpFloat_t *params,
+  FLOAT *params,
   unsigned param_i,
-  mlgpFloat_t *diff
+  FLOAT *diff
 )
 {
 
-  CBLAS_COPY(dim,y,incy,diff,1);
-  CBLAS_AXPY(dim,-1.0,x,incx,diff,1);
-  mlgpFloat_t dist = diff[param_i];
+  MLGP_COPY(dim,y,incy,diff,1);
+  MLGP_AXPY(dim,-1.0,x,incx,diff,1);
+  FLOAT dist = diff[param_i];
   for(int i=0;i<dim;i++){ diff[i]*=params[i]; }
-  mlgpFloat_t k = params[dim]*exp(-CBLAS_DOT(dim,diff,1,diff,1));
+  FLOAT k = params[dim]*exp(-MLGP_DOT(dim,diff,1,diff,1));
 
   if(param_i<dim){
     return dist*dist*k*params[param_i]*params[param_i]*2;

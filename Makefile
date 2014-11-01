@@ -3,7 +3,7 @@ include make.inc
 all: libmlgp
 
 libmlgp:
-	cd src; make
+	cd src; make libmlgp.so
 
 demo: libmlgp
 	cd demo; make

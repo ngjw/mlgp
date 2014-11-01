@@ -1,18 +1,18 @@
 #include "../include/mlgp.h"
 #include "include/mlgp_internal.h"
 
-mlgpStatus_t mlgp_predict_cpu (
-  mlgpMatrix_t X,
-  mlgpVector_t y,
-  mlgpMatrix_t Xs,
-  mlgpVector_t ymu,
-  mlgpVector_t ys2,
-  mlgpVector_t fmu,
-  mlgpVector_t fs2,
-  mlgpInf_t inf,
-  mlgpMean_t mean,
-  mlgpCov_t cov,
-  mlgpLik_t lik,
+mlgpStatus_t MLGP_PREDICT_CPU (
+  MATRIX_T X,
+  VECTOR_T y,
+  MATRIX_T Xs,
+  VECTOR_T ymu,
+  VECTOR_T ys2,
+  VECTOR_T fmu,
+  VECTOR_T fs2,
+  INF_T inf,
+  MEAN_T mean,
+  COV_T cov,
+  LIK_T lik,
   mlgpWorkspace_t* workspace,
   mlgpOptions_t options
 )
@@ -78,11 +78,11 @@ mlgpStatus_t mlgp_predict_cpu (
   unsigned sizeK, memoryNeeded;
   ptrdiff_t shift;
 
-  mlgpMatrix_t K, Ks, Ks_temp, temp_mat;
-  mlgpVector_t Kinvy;
+  MATRIX_T K, Ks, Ks_temp, temp_mat;
+  VECTOR_T Kinvy;
   mlgpOptions_t int_opts;
 
-  mlgpFloat_t sig_n2;
+  FLOAT sig_n2;
 
   N = X.nrows;
   Ns = Xs.nrows;
@@ -91,10 +91,10 @@ mlgpStatus_t mlgp_predict_cpu (
 
   memoryNeeded = sizeK + 2*N*Ns + N;
 
-  K       = mlgp_createMatrixNoMalloc(N,N);
-  Ks      = mlgp_createMatrixNoMalloc(Ns,N);
-  Ks_temp = mlgp_createMatrixNoMalloc(N,Ns);
-  Kinvy   = mlgp_createVectorNoMalloc(N);
+  K       = MLGP_CREATEMATRIXNOMALLOC(N,N);
+  Ks      = MLGP_CREATEMATRIXNOMALLOC(Ns,N);
+  Ks_temp = MLGP_CREATEMATRIXNOMALLOC(N,Ns);
+  Kinvy   = MLGP_CREATEVECTORNOMALLOC(N);
 
 
   /* Compute and assign working memory needed */
@@ -107,7 +107,7 @@ mlgpStatus_t mlgp_predict_cpu (
       memoryNeeded = 2*N*Ns;
     }
 
-    workspace->ws[0] = (mlgpFloat_t*)malloc(memoryNeeded*sizeof(mlgpFloat_t));
+    workspace->ws[0] = malloc(memoryNeeded*sizeof(FLOAT));
 
     if(options.opts&CREATEWORKSPACE){
       return mlgpSuccess;
@@ -115,66 +115,66 @@ mlgpStatus_t mlgp_predict_cpu (
   }
   
   shift = 0;
-  Ks.m       = workspace->ws[0]+shift; shift+=Ns*N;
-  Ks_temp.m  = workspace->ws[0]+shift; shift+=Ns*N;
+  Ks.m       = (FLOAT*)workspace->ws[0]+shift; shift+=Ns*N;
+  Ks_temp.m  = (FLOAT*)workspace->ws[0]+shift; shift+=Ns*N;
 
   if(options.opts&SAVE){
-    Kinvy.v    = workspace->ws[1];
-    K.m        = workspace->ws[1]+N;
+    Kinvy.v    = (FLOAT*)workspace->ws[1];
+    K.m        = (FLOAT*)workspace->ws[1]+N;
   }else{
-    Kinvy.v    = workspace->ws[0]+shift; shift+=N;
-    K.m        = workspace->ws[0]+shift; shift+=sizeK;
+    Kinvy.v    = (FLOAT*)workspace->ws[0]+shift; shift+=N;
+    K.m        = (FLOAT*)workspace->ws[0]+shift; shift+=sizeK;
   }
 
   if(!(options.opts&SAVE)){
     /* copy training inputs y into Kinvy */
-    CBLAS_COPY(N,y.v,1,Kinvy.v,1);
+    MLGP_COPY(N,y.v,1,Kinvy.v,1);
 
     /* subtract prior mean (in Ks) from y (in Kinvy) 
      * Kinvy contains (y-mu) */
     int_opts.opts = _SUBMEAN;
-    mlgp_mean(Kinvy,X,mean,Kinvy,0,int_opts);
+    MLGP_MEAN(Kinvy,X,mean,Kinvy,0,int_opts);
   }
 
   sig_n2 = exp(2.*lik.params[0]);
 
-  /* generate training data covariance matrix  in K */
+  /* generate training data covariance matrix in K */
   if(!(options.opts&SAVE)){
     int_opts.opts = _SYMM;
     if(options.opts&PACKED){ int_opts.opts|=_PACKED; }
-    mlgp_cov(K,X,X,cov,K,0,int_opts);
+    MLGP_COV(K,X,X,cov,K,0,int_opts);
 
-  /* add Gaussian noise term to the diagonal 
+  /* add noise term to the diagonal 
      * K contains K + diag(sig_n^2) */
     if(options.opts&PACKED){
       for(unsigned i=0;i<N;i++){
         K.m[i+(i*(i+1))/2] += sig_n2;
       }
     }else{
-      CBLAS_AXPY(N,1.,&sig_n2,0,K.m,N+1);
+      MLGP_AXPY(N,1.,&sig_n2,0,K.m,N+1);
     }
 
     /* solve K(Kinvy) = (y-mu) 
      * Kinvy contains (K^-1)*(y-mu) 
      * K contains L (its cholesky factor) */
     if(options.opts&PACKED){
-      chol_packed(K);
-      solve_chol_packed_one(K,Kinvy);
+      CHOL_PACKED(K);
+      SOLVE_CHOL_PACKED_ONE(K,Kinvy);
     }else{
-      chol(K);
-      solve_chol_one(K,Kinvy);
+      CHOL(K);
+      SOLVE_CHOL_ONE(K,Kinvy);
     }
 
   }
 
   /* generate cross covariance matrix in Ks */
   int_opts.opts = _NONE;
-  mlgp_cov(Ks,Xs,X,cov,Ks,0,int_opts);
+  MLGP_COV(Ks,Xs,X,cov,Ks,0,int_opts);
 
   /* ymu = (Ks*Kinv*(y-mu)) + mus */
-  CBLAS_GEMV(CblasColMajor,CblasNoTrans,Ns,N,1.,Ks.m,Ns,Kinvy.v,1,0.,ymu.v,1);
+  MLGP_GEMV('N',Ns,N,1.,Ks.m,Ns,Kinvy.v,1,0.,ymu.v,1);
   int_opts.opts = _ADDMEAN;
-  mlgp_mean(ymu,Xs,mean,ymu,0,int_opts);
+  MLGP_MEAN(ymu,Xs,mean,ymu,0,int_opts);
 
   /* prediction variance */
   for(unsigned i=0;i<N;i++){
@@ -185,18 +185,18 @@ mlgpStatus_t mlgp_predict_cpu (
 
 
   if(options.opts&PACKED){
-    solve_chol_packed_multiple(K,Ks_temp);
+    SOLVE_CHOL_PACKED_MULTIPLE(K,Ks_temp);
   }else{
-    solve_chol_multiple(K,Ks_temp);
+    SOLVE_CHOL_MULTIPLE(K,Ks_temp);
   }
 
   int_opts.opts = _SELF;
   temp_mat.m = ys2.v;
 
-  mlgp_cov(temp_mat,Xs,Xs,cov,temp_mat,0,int_opts);
+  MLGP_COV(temp_mat,Xs,Xs,cov,temp_mat,0,int_opts);
 
   for(unsigned i=0;i<Ns;i++){
-    ys2.v[i] -= CBLAS_DOT(N,Ks.m+i,Ns,Ks_temp.m+i*N,1);
+    ys2.v[i] -= MLGP_DOT(N,Ks.m+i,Ns,Ks_temp.m+i*N,1);
     ys2.v[i] += sig_n2;
   }
 

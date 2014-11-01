@@ -1,40 +1,46 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <lbfgs.h>
-
 /* types defined in this file
  *
  * ----------------------------------------------------------------------------
- * | mlgpFloat_t     | Floating point number type. If -DDOUBLE flag set at    |
- * |                 | at compilation then it is of type double, otherwise    |
- * |                 | it is of type float.                                   |
- * |--------------------------------------------------------------------------|
  * | mlgpStatus_t    | All functions in this library return this (enumerated) |
  * |                 | type indicating if the function call was successful    |
  * |                 | (mlgpSuccess) or one of the error codes.               |
  * |--------------------------------------------------------------------------|
- * | mlgpMean_t      | Contains information about the mean function to be     |
- * |                 | used in the GP.                                        |
+ * | mlgpSMean_t     | Contains information about the mean function to be     |
+ * | mlgpDMean_t     | used in the GP.                                        |
+ * |                 | mlgpSMean_t - Single precision.                        |
+ * |                 | mlgpDMean_t - Double precision.                        |
  * |--------------------------------------------------------------------------|
- * | mlgpCov_t       | Contains information about the covariance function to  |
- * |                 | be used in the GP.                                     |
+ * | mlgpSCov_t      | Contains information about the covariance function to  |
+ * | mlgpDCov_t      | be used in the GP.                                     |
+ * |                 | mlgpSCov_t - Single Precision.                          |
+ * |                 | mlgpDCov_t - Double Precision.                          |
  * |--------------------------------------------------------------------------|
- * | mlgpLik_t       | Contains information about the likelihood function to  |
- * |                 | be used in the GP.                                     |
+ * | mlgpSLik_t      | Contains information about the likelihood function to  |
+ * | mlgpDLik_t      | be used in the GP.                                     |
+ * |                 | mlgpSLik_t - Single precision.                          |
+ * |                 | mlgpDLik_t - Single precision.                          |
  * |--------------------------------------------------------------------------|
- * | mlgpInf_t       | Contains information about the inference method to be  |
- * |                 | used in the GP.                                        |
+ * | mlgpSInf_t      | Contains information about the inference method to be  |
+ * | mlgpDInf_t      | used in the GP.                                        |
+ * |                 | mlgpSInf_t - Single precision.                         |
+ * |                 | mlgpSInf_t - Double precision.                         |
  * |--------------------------------------------------------------------------|
  * | mlgpOptions_t   | Contains the options to be passed into the functions   |
  * |                 | in this library.                                       |
  * |--------------------------------------------------------------------------|
- * | mlgpMatrix_t    | Struct with a pointer to a contiguous block of         |
- * |                 | memory containing a matrix stored in column major      |
+ * | mlgpSMatrix_t   | Struct with a pointer to a contiguous block of         |
+ * | mlgpDMatrix_t   | memory containing a matrix stored in column major      |
  * |                 | format, number of rows and columns of the matrix.      |
+ * |                 | mlgpSMatrix_t - Single precision.                      |
+ * |                 | mlgpDMatrix_t - Double precision.                      |
  * |--------------------------------------------------------------------------|
- * | mlgpVector_t    | Struct with a pointer to a contiguous block of memory  |
- * |                 | containing a vector, and the length of the vector.     |
+ * | mlgpSVector_t   | Struct with a pointer to a contiguous block of memory  |
+ * | mlgpDVector_t   | containing a vector, and the length of the vector.     |
+ * |                 | mlgpSVector_t - Single precision.                      |
+ * |                 | mlgpDVector_t - Double precision.                      |
  * |--------------------------------------------------------------------------|
  * | mlgpTrainOpts_t | Contains the options for the l-BFGS optimisation used  |
  * |                 | in the train function.                                 |
@@ -45,12 +51,6 @@
  *
  */
 
-#ifdef DOUBLE
-#define mlgpFloat_t double
-#else
-#define mlgpFloat_t float
-#endif
-
 typedef enum 
 { 
   mlgpSuccess = 0, 
@@ -58,39 +58,73 @@ typedef enum
 }
 mlgpStatus_t;
 
-typedef struct mlgpMean_t mlgpMean_t;
-struct mlgpMean_t
+typedef struct mlgpSMean_t mlgpSMean_t;
+struct mlgpSMean_t
 { 
   unsigned mean_funcs;
   unsigned nfuncs;
-  mlgpFloat_t *params;
-  mlgpFloat_t *dparams;
-  mlgpMean_t *comps;
+  float *params;
+  float *dparams;
+  mlgpSMean_t *comps; // for composite mean functions
 };
 
-typedef struct mlgpCov_t mlgpCov_t;
-struct mlgpCov_t
+typedef struct mlgpDMean_t mlgpDMean_t;
+struct mlgpDMean_t
+{ 
+  unsigned mean_funcs;
+  unsigned nfuncs;
+  double *params;
+  double *dparams;
+  mlgpDMean_t *comps; // for composite mean functions
+};
+
+typedef struct mlgpSCov_t mlgpSCov_t;
+struct mlgpSCov_t
 { 
   unsigned cov_funcs;
   unsigned nfuncs;
-  mlgpFloat_t *params;
-  mlgpFloat_t *dparams;
-  mlgpCov_t *comps;
+  float *params;
+  float *dparams;
+  mlgpSCov_t *comps; // for composite covariance functions
+};
+
+typedef struct mlgpDCov_t mlgpDCov_t;
+struct mlgpDCov_t
+{ 
+  unsigned cov_funcs;
+  unsigned nfuncs;
+  double *params;
+  double *dparams;
+  mlgpDCov_t *comps; // for composite covariance functions
 };
 
 typedef struct
 { 
   unsigned lik_func;
-  mlgpFloat_t *params;
-  mlgpFloat_t *dparams;
+  float *params;
+  float *dparams;
 }
-mlgpLik_t;
+mlgpSLik_t;
+
+typedef struct
+{ 
+  unsigned lik_func;
+  double *params;
+  double *dparams;
+}
+mlgpDLik_t;
 
 typedef struct
 { 
   unsigned inf_func;
 }
-mlgpInf_t;
+mlgpSInf_t;
+
+typedef struct
+{ 
+  unsigned inf_func;
+}
+mlgpDInf_t;
 
 typedef struct
 { 
@@ -100,20 +134,37 @@ mlgpOptions_t;
 
 typedef struct
 {
-  mlgpFloat_t *m;
+  float *m;
   unsigned nrows;
   unsigned ncols;
 }
-mlgpMatrix_t;
+mlgpSMatrix_t;
 
 typedef struct
 {
-  mlgpFloat_t *v;
+  double *m;
+  unsigned nrows;
+  unsigned ncols;
+}
+mlgpDMatrix_t;
+
+typedef struct
+{
+  float *v;
   unsigned length;
 }
-mlgpVector_t;
+mlgpSVector_t;
+
+typedef struct
+{
+  double *v;
+  unsigned length;
+}
+mlgpDVector_t;
 
 #ifdef HAVELBFGS
+#include <lbfgs.h>
+
 typedef struct
 {
   lbfgs_parameter_t lbfgsparams;
@@ -124,7 +175,7 @@ mlgpTrainOpts_t;
 
 typedef struct
 {
-  mlgpFloat_t **ws;  
+  void **ws; // pointer to memory (cast to float/double)
   unsigned size;
   unsigned allocated;
 }

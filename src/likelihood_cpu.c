@@ -1,14 +1,21 @@
 #include "../include/mlgp.h"
 #include "include/mlgp_internal.h"
 
-mlgpStatus_t mlgp_likelihood_cpu (
-  mlgpFloat_t* nll,
-  mlgpMatrix_t X,
-  mlgpVector_t y,
-  mlgpInf_t inf,
-  mlgpMean_t mean,
-  mlgpCov_t cov,
-  mlgpLik_t lik,
+#ifdef DOUBLE
+#define MLGP_LIKELIHOOD_CPU(...) mlgp_likelihood_cpu_dp(__VA_ARGS__)
+#else
+#define MLGP_LIKELIHOOD_CPU(...) mlgp_likelihood_cpu_sp(__VA_ARGS__)
+#endif
+
+mlgpStatus_t MLGP_LIKELIHOOD_CPU
+(
+  FLOAT* nll,
+  MATRIX_T X,
+  VECTOR_T y,
+  INF_T inf,
+  MEAN_T mean,
+  COV_T cov,
+  LIK_T lik,
   mlgpWorkspace_t* workspace,
   mlgpOptions_t options
 )
@@ -21,13 +28,13 @@ mlgpStatus_t mlgp_likelihood_cpu (
    * function hyperparameters.
    * 
    * Arguments:
-   * - nll          : Pointer to a mlgpFloat_t to store the negative log
+   * - nll          : Pointer to a FLOAT to store the negative log
    *                  marginal likelihood
    *
-   * - X            : mlgpMatrix_t containing the matrix of training inputs.
+   * - X            : MATRIX_T containing the matrix of training inputs.
    *                  Each row represents one input vector. Column major format.
    *
-   * - y            : mlgpVector_t containing the vector of training targets.
+   * - y            : VECTOR_T containing the vector of training targets.
    *
    * - inf          : mlgpInf_t specifying the inference method to be used
    *                  (currently only the exact inference method available).
@@ -70,10 +77,10 @@ mlgpStatus_t mlgp_likelihood_cpu (
 
   ptrdiff_t shift;
 
-  mlgpMatrix_t K, dKdTheta1, dKdTheta2;
-  mlgpVector_t ymm, Kinvy;
+  MATRIX_T K, dKdTheta1, dKdTheta2;
+  VECTOR_T ymm, Kinvy;
 
-  mlgpFloat_t sig_n2;
+  FLOAT sig_n2;
 
   mlgpOptions_t int_opts;
 
@@ -88,19 +95,19 @@ mlgpStatus_t mlgp_likelihood_cpu (
   if(options.opts&CREATEWORKSPACE || options.opts&NOWORKSPACE){
     
     if(options.opts&SAVE){
-      workspace->ws = (mlgpFloat_t**)malloc(2*sizeof(mlgpFloat_t*));
+      workspace->ws = malloc(2*sizeof(FLOAT*));
       workspace->size = 2;
       workspace->allocated = 0x3u;
     }else{
-      workspace->ws = (mlgpFloat_t**)malloc(sizeof(mlgpFloat_t*));
+      workspace->ws = malloc(sizeof(FLOAT*));
       workspace->size = 1;
       workspace->allocated = 0x1u;
     }
   
-    workspace->ws[0] = (mlgpFloat_t*)malloc(memoryNeeded*sizeof(mlgpFloat_t));
+    workspace->ws[0] = malloc(memoryNeeded*sizeof(FLOAT));
 
     if(options.opts&SAVE){
-      workspace->ws[1] = (mlgpFloat_t*)malloc((N*N+N)*sizeof(mlgpFloat_t));
+      workspace->ws[1] = malloc((N*N+N)*sizeof(FLOAT));
     }
 
     if(options.opts&CREATEWORKSPACE){
@@ -108,43 +115,43 @@ mlgpStatus_t mlgp_likelihood_cpu (
     }
   }
 
-  K         = mlgp_createMatrixNoMalloc(N,N);
-  dKdTheta1 = mlgp_createMatrixNoMalloc(N,N);
-  dKdTheta2 = mlgp_createMatrixNoMalloc(N,N);
+  K         = MLGP_CREATEMATRIXNOMALLOC(N,N);
+  dKdTheta1 = MLGP_CREATEMATRIXNOMALLOC(N,N);
+  dKdTheta2 = MLGP_CREATEMATRIXNOMALLOC(N,N);
 
-  ymm       = mlgp_createVectorNoMalloc(N);
-  Kinvy     = mlgp_createVectorNoMalloc(N);
+  ymm       = MLGP_CREATEVECTORNOMALLOC(N);
+  Kinvy     = MLGP_CREATEVECTORNOMALLOC(N);
 
 
   shift = 0;
-  K.m         = workspace->ws[0]+shift; shift+=sizeK; // N*N - covariance matrix
-  dKdTheta1.m = workspace->ws[0]+shift; shift+=sizeK; // N*N - covariance derivatives
-  dKdTheta2.m = workspace->ws[0]+shift; shift+=sizeK; // N*N - covariance derivatives
-  ymm.v       = workspace->ws[0]+shift; shift+=N;     // N   - y-m
-  Kinvy.v     = workspace->ws[0]+shift; shift+=N;     // N   - (K^-1)*y
+  K.m         = (FLOAT*)workspace->ws[0]+shift; shift+=sizeK; // N*N - covariance matrix
+  dKdTheta1.m = (FLOAT*)workspace->ws[0]+shift; shift+=sizeK; // N*N - covariance derivatives
+  dKdTheta2.m = (FLOAT*)workspace->ws[0]+shift; shift+=sizeK; // N*N - covariance derivatives
+  ymm.v       = (FLOAT*)workspace->ws[0]+shift; shift+=N;     // N   - y-m
+  Kinvy.v     = (FLOAT*)workspace->ws[0]+shift; shift+=N;     // N   - (K^-1)*y
   
 
 
   /* ymm contains y */
-  CBLAS_COPY(N,y.v,1,ymm.v,1);
+  MLGP_COPY(N,y.v,1,ymm.v,1);
 
   /* apply mean function, ymm contains y-m */
   int_opts.opts = _SUBMEAN;
-  mlgp_mean(ymm,X,mean,ymm,0,int_opts);
+  MLGP_MEAN(ymm,X,mean,ymm,0,int_opts);
 
   /* copy y-m into Kinvy */
-  CBLAS_COPY(N,ymm.v,1,Kinvy.v,1);
+  MLGP_COPY(N,ymm.v,1,Kinvy.v,1);
 
   /* generate the covariance matrix in K */
   int_opts.opts = _SYMM;
   if(options.opts&PACKED){ int_opts.opts|=_PACKED; }
-  mlgp_cov(K,X,X,cov,K,0,int_opts);
+  MLGP_COV(K,X,X,cov,K,0,int_opts);
 
   /* cache K in dKdTheta2 for derivatives computation */
   if(options.opts&PACKED){
-    CBLAS_COPY((N*(N+1))/2,K.m,1,dKdTheta2.m,1);
+    MLGP_COPY((N*(N+1))/2,K.m,1,dKdTheta2.m,1);
   }else{
-    CBLAS_COPY(N*N,K.m,1,dKdTheta2.m,1);
+    MLGP_COPY(N*N,K.m,1,dKdTheta2.m,1);
   }
 
   /* add noise term to the diagonal */
@@ -154,37 +161,37 @@ mlgpStatus_t mlgp_likelihood_cpu (
       K.m[i+(i*(i+1))/2] += sig_n2;
     }
   }else{
-    CBLAS_AXPY(N,1.,&sig_n2,0,K.m,N+1);
+    MLGP_AXPY(N,1.,&sig_n2,0,K.m,N+1);
   }
 
   /* Cholesky decomposition K = LL^T */
   /* solve K(Kinvy) = y for Kinvy using L */
   if(options.opts&PACKED){
-    chol_packed(K);
-    solve_chol_packed_one(K,Kinvy);
+    CHOL_PACKED(K);
+    SOLVE_CHOL_PACKED_ONE(K,Kinvy);
   }else{
-    chol(K);
-    solve_chol_one(K,Kinvy);
+    CHOL(K);
+    SOLVE_CHOL_ONE(K,Kinvy);
   }
 
   /* first term in nll = 0.5*y'*(K^-1)*y */
-  *nll = 0.5*CBLAS_DOT(N,ymm.v,1,Kinvy.v,1);
+  *nll = 0.5*MLGP_DOT(N,ymm.v,1,Kinvy.v,1);
 
 
   /* second term in nll = 0.5*log(det(K)) 
    * = 0.5*log(det(LL')) = 0.5*log(det(L)^2) = log(det(L))*/
   if(options.opts&PACKED){
-    *nll += log_det_tr_packed(K);
+    *nll += LOG_DET_TR_PACKED(K);
   }else{
-    *nll += log_det_tr(K);
+    *nll += LOG_DET_TR(K);
   }
 
   /* third term in nll = (N/2)*log(2*pi)  */ 
   *nll += N*HALFLOG2PI;
 
   if(options.opts&SAVE){
-    CBLAS_COPY(N,Kinvy.v,1,workspace->ws[1],1);
-    CBLAS_COPY(N*N,K.m,1,workspace->ws[1]+N,1);
+    MLGP_COPY(N,Kinvy.v,1,workspace->ws[1],1);
+    MLGP_COPY(N*N,K.m,1,workspace->ws[1]+N,1);
   }
 
   /* derivatives */
@@ -192,16 +199,15 @@ mlgpStatus_t mlgp_likelihood_cpu (
 
     /* precompute Q = (K^-1) - Kinvy'*Kinvy (stored in K) */
     if(options.opts&PACKED){
-      inv_chol_packed(K);
-      CBLAS_SPR(CblasColMajor,CblasUpper,N,-1.,Kinvy.v,1,K.m);
+      INV_CHOL_PACKED(K);
+      MLGP_SPR('U',N,-1.,Kinvy.v,1,K.m);
     }else{
-      inv_chol(K);
-      CBLAS_GEMM(CblasColMajor,CblasNoTrans,
-      CblasNoTrans,N,N,1,-1.,Kinvy.v,N,Kinvy.v,1,1.,K.m,N);
+      INV_CHOL(K);
+      MLGP_GEMM('N','N',N,N,1,-1.,Kinvy.v,N,Kinvy.v,1,1.,K.m,N);
     }
 
     /* get number of covariance function parameters */
-    np_cov = mlgp_nparams_cov(cov,dim);
+    np_cov = MLGP_NPARAMS_COV(cov,dim);
 
     /* covariance function options flag for derivatives computation */
     int_opts.opts = _SYMM|_DERIVATIVES|_PRECOMPUTE;
@@ -210,11 +216,11 @@ mlgpStatus_t mlgp_likelihood_cpu (
     /* iterate through covariance parameters and compute derivatives for each */
     for(unsigned p_i=0;p_i<np_cov;p_i++){
 
-      mlgp_cov(dKdTheta2,X,X,cov,dKdTheta1,p_i,int_opts);
+      MLGP_COV(dKdTheta2,X,X,cov,dKdTheta1,p_i,int_opts);
 
       if(options.opts&PACKED){
         // elementwise product of Q and dKdTheta1 = trace(Q*dKdTheta1)
-        cov.dparams[p_i] = CBLAS_DOT((N*(N+1))/2,dKdTheta1.m,1,K.m,1); 
+        cov.dparams[p_i] = MLGP_DOT((N*(N+1))/2,dKdTheta1.m,1,K.m,1); 
 
         // subtract duplicates from using the diagonal twice
         for(unsigned i=0;i<N;i++){
@@ -222,19 +228,19 @@ mlgpStatus_t mlgp_likelihood_cpu (
         }
       }else{
         // elementwise product of Q and dKdTheta1 = trace(Q*dKdTheta1)
-        cov.dparams[p_i] = CBLAS_DOT(N*N,dKdTheta1.m,1,K.m,1)/2;
+        cov.dparams[p_i] = MLGP_DOT(N*N,dKdTheta1.m,1,K.m,1)/2;
       }
     }
 
     /* get number of mean parameters */
-    np_mean = mlgp_nparams_mean(mean,dim);
+    np_mean = MLGP_NPARAMS_MEAN(mean,dim);
 
     /* iterate through mean parameters and compute derivatives for each */
     /* using ymm as memory to hold mean derivatives */
     int_opts.opts = _DERIVATIVES;
     for(unsigned p_i=0;p_i<np_mean;p_i++){
-      mlgp_mean(ymm,X,mean,ymm,p_i,int_opts);
-      mean.dparams[p_i] = -CBLAS_DOT(N,Kinvy.v,1,ymm.v,1);
+      MLGP_MEAN(ymm,X,mean,ymm,p_i,int_opts);
+      mean.dparams[p_i] = -MLGP_DOT(N,Kinvy.v,1,ymm.v,1);
     }
 
     /* derivative wrt gaussian noise parameter = sig_n*tr(Q) */
@@ -244,7 +250,7 @@ mlgpStatus_t mlgp_likelihood_cpu (
         lik.dparams[0] += K.m[i+(i*(i+1))/2]*sig_n2;
       }
     }else{
-      lik.dparams[0] = CBLAS_DOT(N,K.m,N+1,&sig_n2,0);
+      lik.dparams[0] = MLGP_DOT(N,K.m,N+1,&sig_n2,0);
     }
 
     if(options.opts&NOWORKSPACE){

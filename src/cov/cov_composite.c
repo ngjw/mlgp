@@ -1,12 +1,12 @@
 #include "../../include/mlgp.h"
 #include "../include/mlgp_internal.h"
 
-mlgpStatus_t mlgp_cov_composite (
-  mlgpMatrix_t K,
-  mlgpMatrix_t X1,
-  mlgpMatrix_t X2,
-  mlgpCov_t cov,
-  mlgpMatrix_t dK,
+mlgpStatus_t MLGP_COV_COMPOSITE (
+  MATRIX_T K,
+  MATRIX_T X1,
+  MATRIX_T X2,
+  COV_T cov,
+  MATRIX_T dK,
   unsigned param_i,
   mlgpOptions_t options
 )
@@ -16,9 +16,9 @@ mlgpStatus_t mlgp_cov_composite (
   unsigned sizeK;
   unsigned nparams;
   ptrdiff_t param_offset;
-  mlgpFloat_t *diff; 
-  covFuncComp_ft covFunc;
-  mlgpFloat_t *tempParams;
+  FLOAT *diff; 
+  COVFUNCCOMP_FT covFunc;
+  FLOAT *tempParams;
 
   N1 = X1.nrows;
   N2 = X2.nrows;
@@ -34,22 +34,22 @@ mlgpStatus_t mlgp_cov_composite (
     sizeK = N1*N2;
   }
 
-  nparams = mlgp_nparams_cov(cov,dim);
+  nparams = MLGP_NPARAMS_COV(cov,dim);
 
-  tempParams = (mlgpFloat_t*)malloc(nparams*sizeof(mlgpFloat_t));
+  tempParams = (FLOAT*)malloc(nparams*sizeof(FLOAT));
 
-  diff = (mlgpFloat_t*)malloc(dim*sizeof(mlgpFloat_t));
+  diff = (FLOAT*)malloc(dim*sizeof(FLOAT));
 
   // parameter transformation
-  CBLAS_COPY(nparams,cov.params,1,tempParams,1);
-  mlgp_cov_param_trans(cov,dim);
+  MLGP_COPY(nparams,cov.params,1,tempParams,1);
+  MLGP_COV_PARAM_TRANS(cov,dim);
 
-  covFuncNode_t *covFuncs = mlgp_createCovFuncList(cov,dim,0,0);
+  COVFUNCNODE_T *covFuncs = MLGP_CREATECOVFUNCLIST(cov,dim,0,0);
 
   if(cov.cov_funcs&covSum){
-    covFunc = &mlgp_covSum;
+    covFunc = &MLGP_COVSUM;
   }else if(cov.cov_funcs&covProd){
-    covFunc = &mlgp_covProd;
+    covFunc = &MLGP_COVPROD;
   }
 
   if(!(options.opts&_DERIVATIVES)){
@@ -89,7 +89,7 @@ mlgpStatus_t mlgp_cov_composite (
     // identify which cov function the chosen parameter belongs to
     // TODO: THIS PART ONLY WORKS FOR covSum NOW
 
-    covFuncDeriv_ft covFuncDeriv;
+    COVFUNCDERIV_FT covFuncDeriv;
 
     unsigned count = 0;
     unsigned curCovFunc;
@@ -108,11 +108,11 @@ mlgpStatus_t mlgp_cov_composite (
     switch(curCovFunc){
       case covSEiso:
         param_offset = count - NCP_SEiso;
-        covFuncDeriv = &mlgp_covSEiso_derivatives;
+        covFuncDeriv = &MLGP_COVSEISO_DERIVATIVES;
         break;
       case covSEard:
         param_offset = count - NCP_SEard;
-        covFuncDeriv = &mlgp_covSEard_derivatives;
+        covFuncDeriv = &MLGP_COVSEARD_DERIVATIVES;
         break;
     }
 
@@ -133,8 +133,8 @@ mlgpStatus_t mlgp_cov_composite (
       }
     }else if(cov.cov_funcs&covProd){
 
-       mlgp_freeCovFuncList(covFuncs);
-       covFuncs = mlgp_createCovFuncList(cov,dim,curCovFunc,1);
+       MLGP_FREECOVFUNCLIST(covFuncs);
+       covFuncs = MLGP_CREATECOVFUNCLIST(cov,dim,curCovFunc,1);
 
       if(options.opts&_PACKED){
         // packed storage
@@ -157,12 +157,12 @@ mlgpStatus_t mlgp_cov_composite (
         }}
       }
     }
-    mlgp_freeCovFuncList(covFuncs);
+    MLGP_FREECOVFUNCLIST(covFuncs);
 
   }
 
   // restore log(parameters)
-  CBLAS_COPY(nparams,tempParams,1,cov.params,1);
+  MLGP_COPY(nparams,tempParams,1,cov.params,1);
 
   free(diff);
 

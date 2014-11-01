@@ -1,20 +1,20 @@
 #include "../include/mlgp.h"
 #include "include/mlgp_internal.h"
 
-mlgpStatus_t mlgp_likelihood (
-  mlgpFloat_t* nll,
-  mlgpMatrix_t X,
-  mlgpVector_t y,
-  mlgpInf_t inf,
-  mlgpMean_t mean,
-  mlgpCov_t cov,
-  mlgpLik_t lik,
+mlgpStatus_t MLGP_LIKELIHOOD (
+  FLOAT* nll,
+  MATRIX_T X,
+  VECTOR_T y,
+  INF_T inf,
+  MEAN_T mean,
+  COV_T cov,
+  LIK_T lik,
   mlgpWorkspace_t* workspace,
   mlgpOptions_t options
 )
 {
 
-  return mlgp_likelihood_cpu(
+  return MLGP_LIKELIHOOD_CPU(
                            nll,
                            X,
                            y,

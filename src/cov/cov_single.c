@@ -1,12 +1,12 @@
 #include "../../include/mlgp.h"
 #include "../include/mlgp_internal.h"
 
-mlgpStatus_t mlgp_cov_single (
-  mlgpMatrix_t K,
-  mlgpMatrix_t X1,
-  mlgpMatrix_t X2,
-  mlgpCov_t cov,
-  mlgpMatrix_t dK,
+mlgpStatus_t MLGP_COV_SINGLE (
+  MATRIX_T K,
+  MATRIX_T X1,
+  MATRIX_T X2,
+  COV_T cov,
+  MATRIX_T dK,
   unsigned param_i,
   mlgpOptions_t options
 )
@@ -15,7 +15,7 @@ mlgpStatus_t mlgp_cov_single (
   unsigned N1, N2, dim;
   unsigned sizeK;
   unsigned nparams;
-  mlgpFloat_t *diff, *tempParams;
+  FLOAT *diff, *tempParams;
 
   N1 = X1.nrows;
   N2 = X2.nrows;
@@ -32,28 +32,28 @@ mlgpStatus_t mlgp_cov_single (
   }
 
   // ptr to covariance function
-  covFunc_ft covFunc;
-  covFuncDeriv_ft covFuncDeriv;
+  COVFUNC_FT covFunc;
+  COVFUNCDERIV_FT covFuncDeriv;
   
   // number of parameters
-  nparams = mlgp_nparams_cov(cov,dim);
+  nparams = MLGP_NPARAMS_COV(cov,dim);
 
   // cache log(params)
-  tempParams = (mlgpFloat_t*)malloc(nparams*sizeof(mlgpFloat_t));
-  CBLAS_COPY(nparams,cov.params,1,tempParams,1);
+  tempParams = (FLOAT*)malloc(nparams*sizeof(FLOAT));
+  MLGP_COPY(nparams,cov.params,1,tempParams,1);
 
   // parameter transformation
-  mlgp_cov_param_trans(cov,dim);
+  MLGP_COV_PARAM_TRANS(cov,dim);
 
-  diff = (mlgpFloat_t*)malloc(dim*sizeof(mlgpFloat_t));
+  diff = (FLOAT*)malloc(dim*sizeof(FLOAT));
 
   if(!(options.opts&_DERIVATIVES)){
 
     switch(cov.cov_funcs){
       case covSEiso:
-        covFunc = &mlgp_covSEiso; break;
+        covFunc = &MLGP_COVSEISO; break;
       case covSEard:
-        covFunc = &mlgp_covSEard; break;
+        covFunc = &MLGP_COVSEARD; break;
       default:
         return mlgpError;
     }
@@ -91,10 +91,10 @@ mlgpStatus_t mlgp_cov_single (
 
     switch(cov.cov_funcs){
       case covSEiso:
-        covFuncDeriv = &mlgp_covSEiso_derivatives;
+        covFuncDeriv = &MLGP_COVSEISO_DERIVATIVES;
         break;
       case covSEard:
-        covFuncDeriv = &mlgp_covSEard_derivatives;
+        covFuncDeriv = &MLGP_COVSEARD_DERIVATIVES;
         break;
     }
     
@@ -118,7 +118,7 @@ mlgpStatus_t mlgp_cov_single (
   free(diff);
 
   // restore log(parameters)
-  CBLAS_COPY(nparams,tempParams,1,cov.params,1);
+  MLGP_COPY(nparams,tempParams,1,cov.params,1);
 
   return mlgpSuccess;
 

@@ -1,24 +1,23 @@
 #include "../include/mlgp.h"
 #include "include/mlgp_internal.h"
 
-mlgpStatus_t mlgp_predict (
-  mlgpMatrix_t X,
-  mlgpVector_t y,
-  mlgpMatrix_t Xs,
-  mlgpVector_t ymu,
-  mlgpVector_t ys2,
-  mlgpVector_t fmu,
-  mlgpVector_t fs2,
-  mlgpInf_t inf,
-  mlgpMean_t mean,
-  mlgpCov_t cov,
-  mlgpLik_t lik,
+mlgpStatus_t MLGP_PREDICT (
+  MATRIX_T X,
+  VECTOR_T y,
+  MATRIX_T Xs,
+  VECTOR_T ymu,
+  VECTOR_T ys2,
+  VECTOR_T fmu,
+  VECTOR_T fs2,
+  INF_T inf,
+  MEAN_T mean,
+  COV_T cov,
+  LIK_T lik,
   mlgpWorkspace_t* workspace,
   mlgpOptions_t options
 )
 {
-
-  return mlgp_predict_cpu(
+  return MLGP_PREDICT_CPU(
                    X,
                    y,
                    Xs,

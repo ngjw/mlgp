@@ -1,8 +1,8 @@
 #include "../include/mlgp_internal.h"
 #include "../../include/mlgp.h"
 
-unsigned mlgp_nparams_cov (
-  mlgpCov_t cov,
+unsigned MLGP_NPARAMS_COV (
+  COV_T cov,
   unsigned dim
 )
 {
@@ -17,8 +17,8 @@ unsigned mlgp_nparams_cov (
 }
 
 
-void mlgp_cov_param_trans$ (
-  mlgpCov_t cov, 
+void MLGP_COV_PARAM_TRANS (
+  COV_T cov, 
   unsigned dim
 )
 {
@@ -44,16 +44,16 @@ void mlgp_cov_param_trans$ (
 
 
 /* creates the linked list of cov functions and their parameters */
-covFuncNode_t *mlgp_createCovFuncList (
-  mlgpCov_t cov,
+COVFUNCNODE_T *MLGP_CREATECOVFUNCLIST (
+  COV_T cov,
   unsigned dim,
   unsigned covToSkip,
   unsigned zeroOrOne
 )
 {
   unsigned param_offset;
-  covFuncNode_t *head = (covFuncNode_t*)malloc(sizeof(covFuncNode_t));
-  covFuncNode_t *cur = head;
+  COVFUNCNODE_T *head = (COVFUNCNODE_T*)malloc(sizeof(COVFUNCNODE_T));
+  COVFUNCNODE_T *cur = head;
 
   if(cov.cov_funcs&covSum){
     param_offset = 0;
@@ -63,9 +63,9 @@ covFuncNode_t *mlgp_createCovFuncList (
 
   if(cov.cov_funcs&covSEiso){
     if(covToSkip&covSEiso){
-      cur->func = (zeroOrOne==0) ? &mlgp_covDummyZero : &mlgp_covDummyOne;
+      cur->func = (zeroOrOne==0) ? &MLGP_COVDUMMYZERO : &MLGP_COVDUMMYONE;
     }else{
-      cur->func = &mlgp_covSEiso;
+      cur->func = &MLGP_COVSEISO;
     }
     cur->params = cov.params + param_offset;
     cur->next = NULL;
@@ -73,13 +73,13 @@ covFuncNode_t *mlgp_createCovFuncList (
   }
 
   if(cov.cov_funcs&covSEard){
-    cur->next = (covFuncNode_t*)malloc(sizeof(covFuncNode_t));
+    cur->next = (COVFUNCNODE_T*)malloc(sizeof(COVFUNCNODE_T));
     cur = cur->next;
 
     if(covToSkip&covSEard){
-      cur->func = (zeroOrOne==0) ? &mlgp_covDummyZero : &mlgp_covDummyOne;
+      cur->func = (zeroOrOne==0) ? &MLGP_COVDUMMYZERO : &MLGP_COVDUMMYONE;
     }else{
-      cur->func = &mlgp_covSEard;
+      cur->func = &MLGP_COVSEARD;
     }
 
     cur->params = cov.params + param_offset;
@@ -91,11 +91,11 @@ covFuncNode_t *mlgp_createCovFuncList (
 
 }
 
-void mlgp_freeCovFuncList (
-  covFuncNode_t *list
+void MLGP_FREECOVFUNCLIST (
+  COVFUNCNODE_T *list
 )
 {
-  covFuncNode_t *temp = list;
+  COVFUNCNODE_T *temp = list;
   while(list!=NULL){
     temp = list->next; 
     free(list);

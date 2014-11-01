@@ -1,19 +1,19 @@
 #include "../../include/mlgp.h"
 #include "../include/mlgp_internal.h"
 
-mlgpFloat_t mlgp_covSum (
-  mlgpFloat_t *x,
+FLOAT MLGP_COVSUM (
+  FLOAT *x,
   unsigned incx,
-  mlgpFloat_t *y,
+  FLOAT *y,
   unsigned incy,
   unsigned dim,
-  mlgpFloat_t *params,
-  mlgpFloat_t *diff,
-  covFuncNode_t *funcs
+  FLOAT *params,
+  FLOAT *diff,
+  COVFUNCNODE_T *funcs
 )
 {
 
-  mlgpFloat_t k = 0;
+  FLOAT k = 0;
   while(funcs!=NULL){
     k += (*(funcs->func))(x,incx,y,incy,dim,funcs->params,diff);
     funcs = funcs->next;
@@ -22,15 +22,15 @@ mlgpFloat_t mlgp_covSum (
 
 }
 
-mlgpFloat_t mlgp_covSum_derivatives (
-  mlgpFloat_t *x,
+FLOAT MLGP_COVSUM_DERIVATIVES (
+  FLOAT *x,
   unsigned incx,
-  mlgpFloat_t *y,
+  FLOAT *y,
   unsigned incy,
   unsigned dim,
-  mlgpFloat_t *params,
+  FLOAT *params,
   unsigned param_i,
-  mlgpFloat_t *diff
+  FLOAT *diff
 )
 {
 

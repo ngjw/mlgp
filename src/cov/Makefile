@@ -1,47 +1,45 @@
 include ../../make.inc
 
-COVSCPU = \
-cov.o \
-cov_single.o \
-cov_composite.o \
-cov_aux.o \
-covSEiso.o \
-covSEard.o \
-covSum.o \
-covProd.o \
-covDummy.o \
+SINGLEOBJS = \
+cov_sp.o \
+cov_single_sp.o \
+cov_composite_sp.o \
+cov_aux_sp.o \
+covSEiso_sp.o \
+covSEard_sp.o \
+covSum_sp.o \
+covProd_sp.o \
+covDummy_sp.o \
+
+DOUBLEOBJS = \
+cov_dp.o \
+cov_single_dp.o \
+cov_composite_dp.o \
+cov_aux_dp.o \
+covSEiso_dp.o \
+covSEard_dp.o \
+covSum_dp.o \
+covProd_dp.o \
+covDummy_dp.o \
 
 
-ALLCOVS = $(COVSCPU)
+ALLCOVS =
+
+ifeq ($(SINGLE),1)
+ALLCOVS+=$(SINGLEOBJS)
+endif
+
+ifeq ($(DOUBLE),1)
+ALLCOVS+=$(DOUBLEOBJS)
+endif
 
 all: $(ALLCOVS)
 
-cov.o: cov.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c cov.c
+%_sp.o: %.c
+	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c $< -o $@
 
-cov_single.o: cov_single.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c cov_single.c
-
-cov_composite.o: cov_composite.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c cov_composite.c
-
-cov_aux.o: cov_aux.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c cov_aux.c
-
-covSEiso.o: covSEiso.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c covSEiso.c
-
-covSEard.o: covSEard.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c covSEard.c
-
-covSum.o: covSum.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c covSum.c
-
-covProd.o: covProd.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c covProd.c
-
-covDummy.o: covDummy.c
-	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -fPIC -c covDummy.c
+%_dp.o: %.c
+	$(CC) $(CFLAGS) $(INCLUDE) $(DEFINE) -DDOUBLE -fPIC -c $< -o $@
 
 clean:
-	rm *.o;
+	rm -f *.o *.gcno

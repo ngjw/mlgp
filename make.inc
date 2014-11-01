@@ -1,18 +1,23 @@
 # SET THE COMPILER TO USE
-CC=gcc-4.4
+CC=gcc
 HAVELBFGS=1
 COVERAGE=0
+
+# 1 TO COMPILE SINGLE/DOUBLE PRECISION CODE, 0 TO OMIT
+SINGLE=1
 DOUBLE=1
 
 BLASDIR=/usr/lib
 LAPACKDIR=/usr/lib
 MATHDIR=/lib/x86_64-linux-gnu
 
-LBFGSINCLUDE=/home/junwei/hroot/usr/include
-LBFGSDIR=/home/junwei/hroot/usr/lib
+# uncomment these two lines and set the paths if libLBFGS is not
+# installed at the default paths
+#LBFGSINCLUDE=/usr/local/include
+#LBFGSDIR=/home/local/lib
 
 # SET THE DIRECTORY FOR THE LIBRARY
-MLGPLIBDIR=/home/junwei/mlgp/mlgp/lib
+MLGPLIBDIR=/usr/local/lib
 
 ############################################
 # CHANGE THE FIELDS BELOW AT YOUR OWN RISK #
@@ -28,14 +33,18 @@ CLIB += -L$(LAPACKDIR) -llapack
 CLIB += -L$(BLASDIR)   -lblas
 CLIB += -L$(MATHDIR)   -lm
 
+DEFINE=
+
+ifeq ($(SINGLE),1)
+ifeq ($(DOUBLE),1)
+DEFINE += -DBOTHPRECISION
+endif
+endif
+
 ifeq ($(HAVELBFGS),1)
 DEFINE += -DHAVELBFGS
 INCLUDE += -I$(LBFGSINCLUDE)
 CLIB += -L$(LBFGSDIR) -llbfgs
-endif
-
-ifeq ($(DOUBLE),1)
-DEFINE += -DDOUBLE
 endif
 
 LIBS = $(CLIB)

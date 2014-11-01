@@ -3,40 +3,56 @@
 
 #include "../../include/mlgp.h"
 
-/* mean related functions */
+/* mean functions */
 
-mlgpStatus_t mlgp_mean(
-  mlgpVector_t y,
-  mlgpMatrix_t X,
-  mlgpMean_t mean,
-  mlgpVector_t dy,
+#ifdef DOUBLE
+#define MLGP_NPARAMS_MEAN(...) mlgp_nparams_mean_dp(__VA_ARGS__)
+#define MLGP_MEAN(...) mlgp_mean_dp(__VA_ARGS__)
+#define MLGP_MEANONE(...) mlgp_meanOne_dp(__VA_ARGS__)
+#define MLGP_MEANZERO(...) mlgp_meanZero_dp(__VA_ARGS__)
+#define MLGP_MEANCONST(...) mlgp_meanConst_dp(__VA_ARGS__)
+#define MLGP_MEANLINEAR(...) mlgp_meanLinear_dp(__VA_ARGS__)
+#else
+#define MLGP_NPARAMS_MEAN(...) mlgp_nparams_mean_sp(__VA_ARGS__)
+#define MLGP_MEAN(...) mlgp_mean_sp(__VA_ARGS__)
+#define MLGP_MEANONE(...) mlgp_meanOne_sp(__VA_ARGS__)
+#define MLGP_MEANZERO(...) mlgp_meanZero_sp(__VA_ARGS__)
+#define MLGP_MEANCONST(...) mlgp_meanConst_sp(__VA_ARGS__)
+#define MLGP_MEANLINEAR(...) mlgp_meanLinear_sp(__VA_ARGS__)
+#endif
+
+mlgpStatus_t MLGP_MEAN(
+  VECTOR_T y,
+  MATRIX_T X,
+  MEAN_T mean,
+  VECTOR_T dy,
   unsigned param_i,
   mlgpOptions_t options
 );
 
-mlgpStatus_t mlgp_meanOne(
-  mlgpVector_t y,
-  mlgpMatrix_t X,
-  mlgpMean_t mean,
-  mlgpVector_t dy,
+mlgpStatus_t MLGP_MEANONE(
+  VECTOR_T y,
+  MATRIX_T X,
+  MEAN_T mean,
+  VECTOR_T dy,
   unsigned param_i,
   mlgpOptions_t options
 );
 
-mlgpStatus_t mlgp_meanConst(
-  mlgpVector_t y,
-  mlgpMatrix_t X,
-  mlgpMean_t mean,
-  mlgpVector_t dy,
+mlgpStatus_t MLGP_MEANCONST(
+  VECTOR_T y,
+  MATRIX_T X,
+  MEAN_T mean,
+  VECTOR_T dy,
   unsigned param_i,
   mlgpOptions_t options
 );
 
-mlgpStatus_t mlgp_meanLinear(
-  mlgpVector_t y,
-  mlgpMatrix_t X,
-  mlgpMean_t mean,
-  mlgpVector_t dy,
+mlgpStatus_t MLGP_MEANLINEAR(
+  VECTOR_T y,
+  MATRIX_T X,
+  MEAN_T mean,
+  VECTOR_T dy,
   unsigned param_i,
   mlgpOptions_t options
 );

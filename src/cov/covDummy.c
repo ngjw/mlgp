@@ -1,14 +1,14 @@
 #include "../../include/mlgp.h"
 #include "../include/mlgp_internal.h"
 
-mlgpFloat_t mlgp_covDummyZero (
-  mlgpFloat_t *x,
+FLOAT MLGP_COVDUMMYZERO (
+  FLOAT *x,
   unsigned incx,
-  mlgpFloat_t *y,
+  FLOAT *y,
   unsigned incy,
   unsigned dim,
-  mlgpFloat_t *params,
-  mlgpFloat_t *diff
+  FLOAT *params,
+  FLOAT *diff
 )
 {
 
@@ -16,14 +16,14 @@ mlgpFloat_t mlgp_covDummyZero (
 
 }
 
-mlgpFloat_t mlgp_covDummyOne (
-  mlgpFloat_t *x,
+FLOAT MLGP_COVDUMMYONE (
+  FLOAT *x,
   unsigned incx,
-  mlgpFloat_t *y,
+  FLOAT *y,
   unsigned incy,
   unsigned dim,
-  mlgpFloat_t *params,
-  mlgpFloat_t *diff
+  FLOAT *params,
+  FLOAT *diff
 )
 {
 

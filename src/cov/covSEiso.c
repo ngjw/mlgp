@@ -3,37 +3,37 @@
 
 /* covariance function: squared exponential with isotropic distance measure */
 
-mlgpFloat_t mlgp_covSEiso (
-  mlgpFloat_t *x,
+FLOAT MLGP_COVSEISO (
+  FLOAT *x,
   unsigned incx,
-  mlgpFloat_t *y,
+  FLOAT *y,
   unsigned incy,
   unsigned dim,
-  mlgpFloat_t *params,
-  mlgpFloat_t *diff
+  FLOAT *params,
+  FLOAT *diff
 )
 {
-  CBLAS_COPY(dim,y,incy,diff,1);
-  CBLAS_AXPY(dim,-1.,x,incx,diff,1);
-  return params[1]*exp(-params[0]*CBLAS_DOT(dim,diff,1,diff,1));
+  MLGP_COPY(dim,y,incy,diff,1);
+  MLGP_AXPY(dim,-1.,x,incx,diff,1);
+  return params[1]*exp(-params[0]*MLGP_DOT(dim,diff,1,diff,1));
 }
 
-mlgpFloat_t mlgp_covSEiso_derivatives (
-  mlgpFloat_t *x,
+FLOAT MLGP_COVSEISO_DERIVATIVES (
+  FLOAT *x,
   unsigned incx,
-  mlgpFloat_t *y,
+  FLOAT *y,
   unsigned incy,
   unsigned dim,
-  mlgpFloat_t *params,
+  FLOAT *params,
   unsigned param_i,
-  mlgpFloat_t *diff
+  FLOAT *diff
 )
 {
-  mlgpFloat_t sqdist;
+  FLOAT sqdist;
 
-  CBLAS_COPY(dim,y,incy,diff,1);
-  CBLAS_AXPY(dim,-1.,x,incx,diff,1); // diff
-  sqdist = CBLAS_DOT(dim,diff,1,diff,1); // dist
+  MLGP_COPY(dim,y,incy,diff,1);
+  MLGP_AXPY(dim,-1.,x,incx,diff,1); // diff
+  sqdist = MLGP_DOT(dim,diff,1,diff,1); // dist
 
   if(param_i == 0){
     return 2.0*params[0]*sqdist*params[1]*exp(-params[0]*sqdist);

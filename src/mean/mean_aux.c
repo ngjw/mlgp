@@ -1,8 +1,8 @@
 #include "../include/mlgp_internal.h"
 #include "../../include/mlgp.h"
 
-unsigned mlgp_nparams_mean (
-  mlgpMean_t mean,
+unsigned MLGP_NPARAMS_MEAN (
+  MEAN_T mean,
   unsigned dim
 )
 {
